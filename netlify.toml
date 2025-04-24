@@ -1,5 +1,5 @@
 # Configuración de Next.js para Netlify
-# Optimizado para evitar errores de prerenderizado con autenticación y problemas de CSS
+# Optimizado para evitar errores de prerenderizado con autenticación y problemas de carga
 [build]
   command = "npm run build"
   publish = ".next"
@@ -34,9 +34,25 @@
   status = 200
   force = true
 
+# Redirección para manejar la navegación del lado del cliente
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
   force = false
-  conditions = {Role = ["admin", "owner", "member"]}
+
+# Configuración de funciones para manejar errores de servidor
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Configuración de caché para mejorar el rendimiento
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

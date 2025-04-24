@@ -1,131 +1,101 @@
 'use client';
 
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-// Crear contexto de autenticación
+// Crear el contexto de autenticación
 const AuthContext = createContext();
 
 // Hook personalizado para usar el contexto de autenticación
-export const useAuth = () => {
+export function useAuth() {
   return useContext(AuthContext);
-};
+}
 
 // Proveedor de autenticación
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  // Cargar estado de autenticación al montar el componente
-  useEffect(() => {
-    const storedUser = localStorage.getItem('timetracker_user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-        setIsAdmin(parsedUser.role === 'admin');
-      } catch (error) {
-        console.error('Error al cargar usuario:', error);
-        localStorage.removeItem('timetracker_user');
-      }
-    }
-    setLoading(false);
-  }, []);
+  const [error, setError] = useState(null);
+  const router = useRouter();
 
   // Función para iniciar sesión
-  const login = (userData) => {
-    // Validar credenciales
-    if (userData.role === 'admin') {
-      // Credenciales de administrador
-      if (userData.username === 'admin' && userData.password === 'admin123') {
-        const adminUser = {
-          id: 'ADMIN001',
-          name: 'Administrador',
-          role: 'admin',
-          email: 'admin@magneticplace.com'
-        };
-        setUser(adminUser);
-        setIsAuthenticated(true);
-        setIsAdmin(true);
-        localStorage.setItem('timetracker_user', JSON.stringify(adminUser));
-        return { success: true };
-      }
-    } else if (userData.role === 'employee') {
-      // Credenciales de empleado
-      // Buscar en la lista de empleados
-      const storedEmployees = localStorage.getItem('timetracker_employees');
-      if (storedEmployees) {
-        const employees = JSON.parse(storedEmployees);
-        const employee = employees.find(emp => 
-          emp.id === userData.username && emp.password === userData.password
-        );
-        
-        if (employee) {
-          const employeeUser = {
-            id: employee.id,
-            name: employee.name,
-            role: 'employee',
-            email: employee.email,
-            department: employee.department
-          };
-          setUser(employeeUser);
-          setIsAuthenticated(true);
-          setIsAdmin(false);
-          localStorage.setItem('timetracker_user', JSON.stringify(employeeUser));
-          return { success: true };
-        }
-      }
+  const login = async (username, password) => {
+    try {
+      setLoading(true);
+      setError(null);
       
-      // Verificar empleados predefinidos
-      if (userData.username === 'EMP001' && userData.password === 'emp123') {
-        const employeeUser = {
-          id: 'EMP001',
-          name: 'Carlos Rodríguez',
-          role: 'employee',
-          email: 'carlos.rodriguez@magneticplace.com',
-          department: 'Operaciones'
+      // Simulación de autenticación
+      if (username === 'admin' && password === 'admin123') {
+        const userData = {
+          id: 'admin-001',
+          name: 'Administrador',
+          email: 'admin@example.com',
+          role: 'admin'
         };
-        setUser(employeeUser);
-        setIsAuthenticated(true);
-        setIsAdmin(false);
-        localStorage.setItem('timetracker_user', JSON.stringify(employeeUser));
-        return { success: true };
+        
+        // Guardar en localStorage
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        return { success: true, user: userData };
+      } else if (username === 'EMP001' && password === 'emp123') {
+        const userData = {
+          id: 'EMP001',
+          name: 'Empleado Demo',
+          email: 'empleado@example.com',
+          role: 'employee'
+        };
+        
+        // Guardar en localStorage
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        return { success: true, user: userData };
+      } else {
+        setError('Credenciales inválidas');
+        return { success: false, error: 'Credenciales inválidas' };
       }
+    } catch (err) {
+      setError(err.message || 'Error de autenticación');
+      return { success: false, error: err.message || 'Error de autenticación' };
+    } finally {
+      setLoading(false);
     }
-    
-    // Credenciales inválidas
-    return { success: false, error: 'Credenciales inválidas' };
   };
 
   // Función para cerrar sesión
   const logout = () => {
+    localStorage.removeItem('user');
     setUser(null);
-    setIsAuthenticated(false);
-    setIsAdmin(false);
-    localStorage.removeItem('timetracker_user');
+    router.push('/');
   };
 
-  // Función para verificar si un usuario tiene acceso a una ruta
-  const hasAccess = (route) => {
-    if (!isAuthenticated) return false;
-    
-    // Rutas de administrador
-    if (route.startsWith('/admin') && !isAdmin) return false;
-    
-    return true;
-  };
+  // Verificar si hay un usuario en localStorage al cargar
+  useEffect(() => {
+    try {
+      // Añadir un pequeño retraso para evitar problemas de hidratación
+      const timer = setTimeout(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+        setLoading(false);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    } catch (err) {
+      console.error('Error al cargar usuario:', err);
+      setError(err.message || 'Error al cargar usuario');
+      setLoading(false);
+    }
+  }, []);
 
   // Valor del contexto
   const value = {
     user,
-    isAuthenticated,
-    isAdmin,
+    loading,
+    error,
     login,
     logout,
-    hasAccess,
-    loading
+    isAuthenticated: !!user
   };
 
   return (
@@ -133,24 +103,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-// Componente de orden superior para proteger rutas
-export function withAuth(Component) {
-  return function AuthenticatedComponent(props) {
-    const { isAuthenticated, loading } = useAuth();
-    
-    if (loading) {
-      return <div>Cargando...</div>;
-    }
-    
-    if (!isAuthenticated) {
-      if (typeof window !== 'undefined') {
-        window.location.href = '/auth/login';
-      }
-      return null;
-    }
-    
-    return <Component {...props} />;
-  };
 }

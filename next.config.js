@@ -37,6 +37,29 @@ module.exports = {
       path: false,
     };
     
+    // Configuración para manejar errores de hidratación
+    if (!isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          default: false,
+          vendors: false,
+          commons: {
+            name: 'commons',
+            chunks: 'all',
+            minChunks: 2,
+          },
+          // Separar los componentes de React para evitar problemas de hidratación
+          react: {
+            name: 'react',
+            chunks: 'all',
+            test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+            priority: 40,
+          },
+        },
+      };
+    }
+    
     return config;
   },
   
@@ -70,5 +93,13 @@ module.exports = {
         'autoprefixer',
       ],
     },
-  }
+  },
+  
+  // Configuración para manejar errores de hidratación
+  onDemandEntries: {
+    // Período de tiempo en ms en el que la página se mantendrá en memoria
+    maxInactiveAge: 60 * 1000,
+    // Número de páginas que se mantendrán en memoria
+    pagesBufferLength: 5,
+  },
 }
