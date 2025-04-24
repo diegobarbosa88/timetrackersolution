@@ -1,0 +1,23 @@
+# Configuración de Next.js para Netlify
+# Optimizado para evitar errores de prerenderizado con autenticación
+[build]
+  command = "npm run netlify-build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+  NEXT_DISABLE_STATIC_GENERATION = "true"
+  NEXT_PUBLIC_RUNTIME_ENV = "client"
+  NODE_VERSION = "18.17.1"
+  NEXT_PRIVATE_TARGET = "server"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Redirecciones para SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+  conditions = {Role = ["admin", "owner", "member"]}
