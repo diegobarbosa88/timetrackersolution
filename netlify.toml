@@ -1,7 +1,7 @@
 # Configuración de Next.js para Netlify
-# Optimizado para evitar errores de prerenderizado con autenticación
+# Optimizado para evitar errores de prerenderizado con autenticación y problemas de CSS
 [build]
-  command = "npm run netlify-build"
+  command = "npm run build"
   publish = ".next"
 
 [build.environment]
@@ -13,8 +13,27 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+  
+[build.processing]
+  skip_processing = false
+  
+[build.processing.css]
+  bundle = true
+  minify = true
 
-# Redirecciones para SPA
+# Redirecciones para SPA y para asegurar que los archivos estáticos se sirvan correctamente
+[[redirects]]
+  from = "/_next/static/*"
+  to = "/_next/static/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/static/*"
+  to = "/static/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

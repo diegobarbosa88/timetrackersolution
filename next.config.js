@@ -1,4 +1,3 @@
-// Archivo de configuración para resolver problemas de despliegue en Netlify
 module.exports = {
   // Configuración básica
   reactStrictMode: false,
@@ -52,4 +51,24 @@ module.exports = {
   
   // Configuración de exportación estática
   distDir: '.next',
+  
+  // Configuración de CSS para asegurar que los estilos se carguen correctamente
+  optimizeFonts: false,
+  sassOptions: {
+    includePaths: ['./src/styles'],
+  },
+  
+  // Configuración para asegurar que los estilos se carguen correctamente en Netlify
+  assetPrefix: process.env.NODE_ENV === 'production' ? undefined : undefined,
+  
+  // Configuración para PostCSS y Tailwind
+  postcssLoaderOptions: {
+    implementation: require('postcss'),
+    postcssOptions: {
+      plugins: [
+        'tailwindcss',
+        'autoprefixer',
+      ],
+    },
+  }
 }
