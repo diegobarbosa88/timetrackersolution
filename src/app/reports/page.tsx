@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { useState, useEffect } from 'react';
 
@@ -141,7 +143,7 @@ export default function ReportsPage() {
           const totalWorkHours = (exitHour - entryHour) + (exitMinute - entryMinute) / 60;
           
           // Asignar cliente aleatorio
-          const client = clients[Math.floor(Math.random() * clients.length)];
+          const client = sampleClients[Math.floor(Math.random() * sampleClients.length)];
           
           // Crear registro y añadirlo al array
           records.push({
