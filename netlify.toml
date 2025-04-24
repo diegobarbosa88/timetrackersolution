@@ -1,52 +1,32 @@
-# Configuración de Next.js para Netlify
-# Optimizado para evitar errores de prerenderizado con autenticación y problemas de carga
 [build]
   command = "npm run build"
   publish = ".next"
+  
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
-  NEXT_DISABLE_STATIC_GENERATION = "true"
   NEXT_PUBLIC_RUNTIME_ENV = "client"
-  NODE_VERSION = "18.17.1"
-  NEXT_PRIVATE_TARGET = "server"
+  NEXT_DISABLE_STATIC_GENERATION = "true"
+  NODE_VERSION = "18.17.0"
 
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-  
-[build.processing]
-  skip_processing = false
-  
-[build.processing.css]
-  bundle = true
-  minify = true
-
-# Redirecciones para SPA y para asegurar que los archivos estáticos se sirvan correctamente
-[[redirects]]
-  from = "/_next/static/*"
-  to = "/_next/static/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/static/*"
-  to = "/static/:splat"
-  status = 200
-  force = true
-
-# Redirección para manejar la navegación del lado del cliente
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
   force = false
+  conditions = {Role = ["admin", "owner", "member"]}
 
-# Configuración de funciones para manejar errores de servidor
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
-
-# Configuración de caché para mejorar el rendimiento
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'"
+    
 [[headers]]
   for = "/_next/static/*"
   [headers.values]

@@ -1,94 +1,98 @@
-/* Asegúrate de que este archivo esté en src/app/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Estilos personalizados */
 :root {
-  --primary-color: #6b21a8; /* Púrpura */
-  --secondary-color: #3b82f6; /* Azul */
-  --background-color: #f9fafb;
-  --text-color: #1f2937;
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 245, 245, 245;
+  --background-end-rgb: 255, 255, 255;
+  --primary-color: 107, 33, 168;
+  --primary-color-light: 126, 34, 206;
+  --primary-color-dark: 88, 28, 135;
 }
 
 body {
-  background-color: var(--background-color);
-  color: var(--text-color);
-}
-
-/* Estilos para botones */
-.btn-primary {
-  @apply bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded;
-}
-
-.btn-secondary {
-  @apply bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded;
-}
-
-.btn-outline {
-  @apply border border-purple-700 text-purple-700 hover:bg-purple-700 hover:text-white font-bold py-2 px-4 rounded;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
 }
 
 /* Estilos para tarjetas */
 .card {
-  @apply bg-white rounded-lg shadow-md p-6;
+  @apply bg-white p-6 rounded-lg shadow-md;
+}
+
+/* Estilos para métricas */
+.metric-value {
+  @apply text-2xl font-bold text-purple-700;
+}
+
+.metric-label {
+  @apply text-sm text-gray-600;
+}
+
+/* Estilos para botones */
+.btn {
+  @apply px-4 py-2 rounded-md text-white font-medium bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 rounded-md text-purple-700 font-medium bg-white border border-purple-600 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50;
 }
 
 /* Estilos para formularios */
-input, select, textarea {
-  @apply shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline;
+.form-input {
+  @apply w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500;
 }
 
-label {
-  @apply block text-gray-700 text-sm font-bold mb-2;
-}
-
-/* Estilos para navegación */
-nav {
-  @apply bg-white shadow-md;
+.form-label {
+  @apply block text-gray-700 mb-2;
 }
 
 /* Estilos para tablas */
-table {
-  @apply min-w-full divide-y divide-gray-200;
+.table-container {
+  @apply overflow-x-auto;
 }
 
-thead {
-  @apply bg-gray-50;
+.table {
+  @apply min-w-full bg-white;
 }
 
-th {
-  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+.table th {
+  @apply px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
 }
 
-td {
-  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-500;
+.table td {
+  @apply px-6 py-4 whitespace-nowrap border-b border-gray-200;
 }
 
-/* Estilos para el cronómetro */
-.timer-display {
-  @apply text-4xl font-bold text-center py-4;
+/* Estilos para navegación */
+.nav-link {
+  @apply text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium;
 }
 
-/* Estilos para estados */
-.status-active {
-  @apply px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800;
-}
-
-.status-inactive {
-  @apply px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800;
-}
-
-/* Estilos para la página de inicio */
-.hero-section {
-  @apply py-12 bg-gradient-to-r from-purple-700 to-purple-900 text-white;
-}
-
-.feature-card {
-  @apply p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300;
+.nav-link-active {
+  @apply bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium;
 }
 
 /* Animaciones */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -100,11 +104,4 @@ td {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Estilos responsivos */
-@media (max-width: 640px) {
-  .container {
-    @apply px-4;
-  }
 }

@@ -1,20 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../../lib/auth';
+import { useAuth } from '../../lib/auth';
+import LoadingComponent from '../../components/LoadingComponent';
 
 export default function LoginPage() {
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [credentials, setCredentials] = useState({ username: '', password: '', role: 'employee' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCredentials, setShowCredentials] = useState(true);
+  const [clientSide, setClientSide] = useState(false);
   const router = useRouter();
-  const { login, user } = useAuth();
+  const { login, user, isAuthenticated, loading: authLoading } = useAuth();
+
+  // Verificar si estamos en el cliente
+  useEffect(() => {
+    setClientSide(true);
+  }, []);
 
   // Redirigir si el usuario ya está autenticado
   useEffect(() => {
-    if (user) {
+    if (clientSide && isAuthenticated && user) {
       const role = user.role;
       if (role === 'admin') {
         router.push('/admin/employees');
@@ -22,7 +29,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     }
-  }, [user, router]);
+  }, [user, isAuthenticated, router, clientSide]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,7 +42,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const { success, error } = await login(credentials.username, credentials.password);
+      const { success, error } = await login(credentials);
       
       if (!success) {
         setError(error || 'Error al iniciar sesión');
@@ -49,6 +56,11 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  // Si estamos cargando o no estamos en el cliente, mostrar componente de carga
+  if (authLoading || !clientSide) {
+    return <LoadingComponent />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -79,13 +91,26 @@ export default function LoginPage() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
+              <label htmlFor="role" className="sr-only">Rol</label>
+              <select
+                id="role"
+                name="role"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
+                value={credentials.role}
+                onChange={handleChange}
+              >
+                <option value="employee">Empleado</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+            <div>
               <label htmlFor="username" className="sr-only">Usuario</label>
               <input
                 id="username"
                 name="username"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
                 placeholder="Usuario"
                 value={credentials.username}
                 onChange={handleChange}
