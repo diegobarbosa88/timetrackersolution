@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, withAuth } from '../../lib/auth';
+import { useAuth, withAuth } from '../../../lib/auth';
+import LoadingComponent from '../../../components/LoadingComponent';
 
 // Componente protegido que solo pueden ver los usuarios autenticados
 function DashboardPage() {

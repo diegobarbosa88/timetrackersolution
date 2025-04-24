@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../lib/auth';
-import LoadingComponent from '../../components/LoadingComponent';
+import { useAuth } from '../../../lib/auth';
+import LoadingComponent from '../../../components/LoadingComponent';
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({ username: '', password: '', role: 'employee' });
