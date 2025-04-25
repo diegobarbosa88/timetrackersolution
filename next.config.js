@@ -32,13 +32,10 @@ const nextConfig = {
   // Configuración para el entorno de producción
   env: {
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || '',
-  },
-  
-  // Configuración para evitar errores durante la construcción estática
-  experimental: {
-    // Permitir componentes del lado del cliente
-    appDir: true,
   }
+  
+  // La propiedad experimental.appDir ha sido eliminada ya que ya no es necesaria
+  // App router está disponible por defecto en versiones recientes de Next.js
 }
 
 module.exports = nextConfig
