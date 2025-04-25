@@ -1,71 +1,34 @@
 'use client';
 
 import './globals.css';
-import { Inter } from 'next/font/google';
-import Navbar from '../components/Navbar';
-import { AuthProvider } from '../lib/auth';
-import LoadingComponent from '../components/LoadingComponent';
-import { useState, useEffect } from 'react';
-
-const inter = Inter({ subsets: ['latin'] });
+import React from 'react';
 
 export default function RootLayout({ children }) {
-  const [isClient, setIsClient] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Verificar si estamos en el cliente
-  useEffect(() => {
-    setIsClient(true);
-    // Dar tiempo para que los estilos se carguen
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Si no estamos en el cliente, mostrar un esqueleto básico
-  if (!isClient) {
-    return (
-      <html lang="es">
-        <head>
-          <meta charSet="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>TimeTracker - Sistema de Control de Tiempo</title>
-          <meta name="description" content="Sistema de control de tiempo para empleados" />
-          <link rel="icon" href="/favicon.ico" />
-        </head>
-        <body>
-          <div className="min-h-screen flex items-center justify-center">
-            <h1 className="text-2xl font-bold">Sistema de Control de Tiempo</h1>
-          </div>
-        </body>
-      </html>
-    );
-  }
-
   return (
     <html lang="es">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>TimeTracker - Sistema de Control de Tiempo</title>
-        <meta name="description" content="Sistema de control de tiempo para empleados" />
-        <link rel="icon" href="/favicon.ico" />
+        <title>Sistema de Control de Tiempo</title>
+        {/* Asegurar que los estilos se carguen correctamente */}
+        <link rel="stylesheet" href="/_next/static/css/app/layout.css" precedence="default" />
       </head>
-      <body className={`${inter.className} min-h-screen bg-gray-50`}>
-        <AuthProvider>
-          {isLoading ? (
-            <LoadingComponent message="Inicializando aplicación..." />
-          ) : (
-            <>
-              <Navbar />
-              <main className="pt-16">
-                {children}
-              </main>
-            </>
-          )}
-        </AuthProvider>
+      <body className="min-h-screen bg-white">
+        <div className="flex flex-col min-h-screen">
+          <header className="bg-purple-700 text-white shadow-md">
+            <div className="container mx-auto px-4 py-4">
+              <h1 className="text-2xl font-bold">Sistema de Control de Tiempo</h1>
+            </div>
+          </header>
+          <main className="flex-grow container mx-auto px-4 py-8">
+            {children}
+          </main>
+          <footer className="bg-gray-100 border-t border-gray-200">
+            <div className="container mx-auto px-4 py-4 text-center text-gray-600 text-sm">
+              &copy; {new Date().getFullYear()} TimeTracker - Todos los derechos reservados
+            </div>
+          </footer>
+        </div>
       </body>
     </html>
   );
