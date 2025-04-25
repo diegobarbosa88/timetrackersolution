@@ -11,6 +11,7 @@ export default function RootLayout({ children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Sistema de Control de Tiempo</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        {/* Eliminar la línea de link rel="stylesheet" que podría estar causando conflictos */}
       </head>
       <body className="min-h-screen bg-light-gray">
         <div className="flex flex-col min-h-screen">
