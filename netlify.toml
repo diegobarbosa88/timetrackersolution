@@ -1,16 +1,11 @@
 [build]
   command = "npm run build"
   publish = ".next"
-  
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[build.environment]
-  NEXT_TELEMETRY_DISABLED = "1"
-  NEXT_PUBLIC_RUNTIME_ENV = "client"
-  NEXT_DISABLE_STATIC_GENERATION = "true"
-  NODE_VERSION = "18.17.0"
-
+# Redirecciones y reescrituras para manejar rutas de Next.js
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -18,15 +13,46 @@
   force = false
   conditions = {Role = ["admin", "owner", "member"]}
 
+# Redirección específica para la página de inicio
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+
+# Redirección para rutas de API
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/nextjs-server"
+  status = 200
+
+# Redirección para archivos estáticos
+[[redirects]]
+  from = "/_next/static/*"
+  to = "/_next/static/:splat"
+  status = 200
+
+# Redirección para imágenes
+[[redirects]]
+  from = "/_next/image*"
+  to = "/.netlify/functions/nextjs-server"
+  status = 200
+
+# Redirección para rutas dinámicas
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/nextjs-server"
+  status = 200
+
+# Configuración de encabezados para archivos estáticos
 [[headers]]
   for = "/*"
   [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'"
-    
+
 [[headers]]
   for = "/_next/static/*"
   [headers.values]

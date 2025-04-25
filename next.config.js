@@ -1,29 +1,41 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false,
+  reactStrictMode: true,
   swcMinify: true,
-  output: 'standalone',
-  distDir: '.next',
+  
+  // Configuración específica para Netlify
+  trailingSlash: true,
+  
+  // Asegurarse de que las rutas dinámicas funcionen correctamente
+  async rewrites() {
+    return [
+      {
+        source: '/:path*',
+        destination: '/:path*',
+      },
+      {
+        source: '/api/:path*',
+        destination: '/api/:path*',
+      },
+    ];
+  },
+  
+  // Configuración para imágenes
   images: {
+    domains: ['localhost'],
     unoptimized: true,
-    domains: ['localhost', 'timetracketeste.netlify.app'],
   },
-  experimental: {
-    appDir: true,
-    serverComponentsExternalPackages: [],
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  webpack: (config) => {
-    config.resolve.fallback = { fs: false, path: false };
-    return config;
-  },
+  
+  // Configuración para la exportación estática
+  output: 'standalone',
+  
+  // Configuración para el entorno de producción
   env: {
-    NEXT_PUBLIC_RUNTIME_ENV: 'client',
+    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || '',
   },
-  transpilePackages: [],
+  
+  // Configuración para el plugin de Netlify
+  target: 'serverless',
 }
+
+module.exports = nextConfig
