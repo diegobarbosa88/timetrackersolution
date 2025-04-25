@@ -32,10 +32,9 @@ const nextConfig = {
   // Configuración para el entorno de producción
   env: {
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || '',
-  },
+  }
   
-  // Configuración para el plugin de Netlify
-  target: 'serverless',
+  // La propiedad "target" ha sido eliminada ya que no es compatible con Next.js 13.5.6
 }
 
 module.exports = nextConfig
