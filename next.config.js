@@ -32,9 +32,33 @@ const nextConfig = {
   // Configuración para el entorno de producción
   env: {
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || '',
-  }
+  },
   
-  // La propiedad "target" ha sido eliminada ya que no es compatible con Next.js 13.5.6
+  // Configuración específica para CSS
+  webpack: (config) => {
+    // Asegurarse de que los archivos CSS se procesen correctamente
+    const rules = config.module.rules
+      .find((rule) => typeof rule.oneOf === 'object')
+      .oneOf.filter((rule) => Array.isArray(rule.use) && rule.use.some((use) => use.loader?.includes('css-loader')));
+    
+    if (rules.length > 0) {
+      rules.forEach((rule) => {
+        rule.use.forEach((use) => {
+          if (use.loader?.includes('css-loader') && use.options) {
+            use.options.url = false;
+            use.options.import = false;
+          }
+        });
+      });
+    }
+    
+    return config;
+  },
+  
+  // Configuración para PostCSS
+  postcssLoaderOptions: {
+    implementation: require('postcss'),
+  },
 }
 
 module.exports = nextConfig
