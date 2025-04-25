@@ -1,160 +1,102 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../../../lib/auth';
-import LoadingComponent from '../../../components/LoadingComponent';
+import React, { useState } from 'react';
+import { useAuth } from '../../lib/auth';
 
 export default function LoginPage() {
-  const [credentials, setCredentials] = useState({ username: '', password: '', role: 'employee' });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showCredentials, setShowCredentials] = useState(true);
-  const [clientSide, setClientSide] = useState(false);
-  const router = useRouter();
-  const { login, user, isAuthenticated, loading: authLoading } = useAuth();
-
-  // Verificar si estamos en el cliente
-  useEffect(() => {
-    setClientSide(true);
-  }, []);
-
-  // Redirigir si el usuario ya está autenticado
-  useEffect(() => {
-    if (clientSide && isAuthenticated && user) {
-      const role = user.role;
-      if (role === 'admin') {
-        router.push('/admin/employees');
-      } else {
-        router.push('/dashboard');
-      }
-    }
-  }, [user, isAuthenticated, router, clientSide]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCredentials(prev => ({ ...prev, [name]: value }));
-  };
+  const [loading, setLoading] = useState(false);
+  
+  // Usar el hook de autenticación de manera segura
+  const auth = useAuth();
+  
+  // Verificar si auth está disponible (estamos en el cliente)
+  const { login } = auth || { login: async () => ({ success: false }) };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
+    
+    if (!email || !password) {
+      setError('Por favor, ingrese email y contraseña');
+      return;
+    }
+    
     try {
-      const { success, error } = await login(credentials);
+      setLoading(true);
+      setError('');
       
-      if (!success) {
-        setError(error || 'Error al iniciar sesión');
+      const result = await login(email, password);
+      
+      if (!result.success) {
+        setError(result.error || 'Credenciales inválidas');
         return;
       }
       
-      // La redirección se maneja en el efecto useEffect
+      // Redirección exitosa
+      window.location.href = '/dashboard';
     } catch (err) {
       setError('Error al iniciar sesión: ' + (err.message || 'Error desconocido'));
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Si estamos cargando o no estamos en el cliente, mostrar componente de carga
-  if (authLoading || !clientSide) {
-    return <LoadingComponent />;
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Iniciar Sesión
-          </h2>
-          {showCredentials && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-md">
-              <h3 className="text-sm font-medium text-blue-800">Credenciales de prueba:</h3>
-              <p className="mt-2 text-sm text-blue-700">
-                Admin: usuario <strong>admin</strong>, contraseña <strong>admin123</strong>
-              </p>
-              <p className="mt-1 text-sm text-blue-700">
-                Empleado: usuario <strong>EMP001</strong>, contraseña <strong>emp123</strong>
-              </p>
-              <button 
-                onClick={() => setShowCredentials(false)}
-                className="mt-2 text-xs text-blue-600 hover:text-blue-800"
-              >
-                Ocultar
-              </button>
-            </div>
-          )}
-        </div>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h1>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="role" className="sr-only">Rol</label>
-              <select
-                id="role"
-                name="role"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                value={credentials.role}
-                onChange={handleChange}
-              >
-                <option value="employee">Empleado</option>
-                <option value="admin">Administrador</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="username" className="sr-only">Usuario</label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Usuario"
-                value={credentials.username}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Contraseña</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Contraseña"
-                value={credentials.password}
-                onChange={handleChange}
-              />
-            </div>
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
           </div>
-
-          {error && (
-            <div className="text-red-600 text-sm">
-              {error}
-            </div>
-          )}
-
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
-                isLoading ? 'bg-purple-400' : 'bg-purple-600 hover:bg-purple-700'
-              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500`}
-            >
-              {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-            </button>
+        )}
+        
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="ejemplo@correo.com"
+              disabled={loading}
+            />
           </div>
+          
+          <div className="mb-6">
+            <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={loading}
+            />
+          </div>
+          
+          <button
+            type="submit"
+            className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+            disabled={loading}
+          >
+            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+          </button>
         </form>
         
-        <div className="text-center mt-4">
-          <a href="/" className="text-sm text-purple-600 hover:text-purple-800">
-            Volver al inicio
-          </a>
+        <div className="mt-4 text-center text-sm text-gray-600">
+          <p>Para pruebas, use:</p>
+          <p>Email: admin@example.com</p>
+          <p>Contraseña: password</p>
         </div>
       </div>
     </div>

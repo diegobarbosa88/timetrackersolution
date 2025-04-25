@@ -1,141 +1,131 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
-// Contexto de autenticación
+// Crear el contexto de autenticación
 const AuthContext = createContext();
 
-// Hook para usar el contexto de autenticación
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
-
-// Proveedor de autenticación
+// Proveedor de autenticación que maneja el estado de autenticación
 export function AuthProvider({ children }) {
+  // Estado para el usuario y carga
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const router = useRouter();
 
   // Función para iniciar sesión
-  const login = async (credentials) => {
+  const login = async (email, password) => {
     try {
-      // Simulación de autenticación (reemplazar con llamada real a API)
-      if (credentials.role === 'admin' && credentials.username === 'admin' && credentials.password === 'admin123') {
+      // Simulación de autenticación
+      if (email === 'admin@example.com' && password === 'password') {
         const userData = {
           id: '1',
-          name: 'Administrador',
+          name: 'Admin User',
           email: 'admin@example.com',
           role: 'admin'
         };
-        setUser(userData);
-        setIsAuthenticated(true);
+        
+        // Guardar en localStorage para persistencia
         localStorage.setItem('user', JSON.stringify(userData));
-        return { success: true };
-      } else if (credentials.role === 'employee' && credentials.username === 'EMP001' && credentials.password === 'emp123') {
-        const userData = {
-          id: '2',
-          name: 'Empleado',
-          email: 'empleado@example.com',
-          role: 'employee'
-        };
         setUser(userData);
-        setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(userData));
-        return { success: true };
+        return { success: true, user: userData };
       }
       
       return { success: false, error: 'Credenciales inválidas' };
     } catch (error) {
-      console.error('Error en login:', error);
-      return { success: false, error: error.message };
+      console.error('Error durante el login:', error);
+      return { success: false, error: error.message || 'Error de autenticación' };
     }
   };
 
   // Función para cerrar sesión
   const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
     localStorage.removeItem('user');
-    router.push('/auth/login');
+    setUser(null);
   };
 
-  // Verificar si hay un usuario guardado al cargar
+  // Verificar si hay un usuario en localStorage al cargar
   useEffect(() => {
-    const checkUser = () => {
+    // Esta función solo debe ejecutarse en el cliente
+    if (typeof window !== 'undefined') {
       try {
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
-          setIsAuthenticated(true);
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
         }
       } catch (error) {
-        console.error('Error al verificar usuario:', error);
+        console.error('Error al recuperar usuario:', error);
       } finally {
         setLoading(false);
       }
-    };
-
-    // Solo ejecutar en el cliente
-    if (typeof window !== 'undefined') {
-      checkUser();
     } else {
+      // En el servidor, simplemente marcar como no cargando
       setLoading(false);
     }
   }, []);
 
-  // Valores del contexto
+  // Valor del contexto
   const value = {
     user,
-    isAuthenticated,
     loading,
     login,
-    logout
+    logout,
+    isAuthenticated: !!user
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// HOC para proteger rutas
-export function withAuth(Component, requiredRole = 'any') {
-  function AuthenticatedComponent(props) {
-    const { user, isAuthenticated, loading } = useAuth();
-    const router = useRouter();
-    const [clientSide, setClientSide] = useState(false);
+// Hook personalizado para usar el contexto de autenticación
+export function useAuth() {
+  // Verificar si estamos en el cliente
+  const isClient = typeof window !== 'undefined';
+  
+  // Usar el contexto solo si estamos en el cliente
+  const context = isClient ? useContext(AuthContext) : null;
+  
+  // Si estamos en el servidor durante la construcción estática, devolver valores predeterminados
+  if (!isClient) {
+    return {
+      user: null,
+      loading: false,
+      login: () => {},
+      logout: () => {},
+      isAuthenticated: false
+    };
+  }
+  
+  // Verificar si el contexto existe
+  if (context === undefined) {
+    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
+  }
+  
+  return context;
+}
 
-    useEffect(() => {
-      setClientSide(true);
-    }, []);
+// Función para verificar autenticación en el servidor
+export function getServerAuthSession() {
+  // En un entorno real, esto verificaría tokens JWT, cookies, etc.
+  // Para nuestra simulación, siempre devolvemos null en el servidor
+  return null;
+}
 
-    useEffect(() => {
-      if (clientSide && !loading) {
-        if (!isAuthenticated) {
-          router.push('/auth/login');
-        } else if (requiredRole !== 'any' && user?.role !== requiredRole) {
-          router.push('/dashboard');
-        }
-      }
-    }, [isAuthenticated, loading, router, user, clientSide, requiredRole]);
-
-    if (loading || !clientSide) {
+// Función para verificar si una ruta requiere autenticación
+export function requireAuth(Component) {
+  return function AuthenticatedComponent(props) {
+    const { user, loading } = useAuth();
+    
+    // Si estamos en el cliente y cargando, mostrar un indicador de carga
+    if (typeof window !== 'undefined' && loading) {
       return <div>Cargando...</div>;
     }
-
-    if (!isAuthenticated) {
+    
+    // Si estamos en el cliente y no hay usuario autenticado, redirigir a login
+    if (typeof window !== 'undefined' && !user) {
+      // Usar window.location para navegación del lado del cliente
+      window.location.href = '/auth/login';
       return null;
     }
-
-    if (requiredRole !== 'any' && user?.role !== requiredRole) {
-      return null;
-    }
-
+    
+    // Si estamos en el servidor o hay un usuario autenticado, renderizar el componente
     return <Component {...props} />;
-  }
-
-  return AuthenticatedComponent;
+  };
 }
